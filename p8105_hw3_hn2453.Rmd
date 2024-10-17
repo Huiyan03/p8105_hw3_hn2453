@@ -14,6 +14,7 @@ library(dplyr)
 library(tidyr)
 library(readxl)
 library(readr)
+library(ggplot2)
 
 
 knitr::opts_chunk$set(
@@ -119,11 +120,43 @@ covar =
   mutate(sex = as.factor(sex))|>
   mutate(education = as.factor(education))
  
+covar$sex <- factor(covar$sex, levels = c(1,2), labels = c("male","female"))
+
+covar$education <- factor(covar$education, levels = c(1,2,3), labels = c("less than high school","high school equivalent","more than high school"))
+
 head(covar)
 ```
 The covar dataset includes 225 rows and 5 columns. Variables includes seqn, sex, age, bmi and education. The data with NA already removed, and the sex and education variable also change from numeric to factor. 
 
 ```{r}
 accel_covar = left_join(covar,accel,by="seqn")
+
+head(accel_covar)
 ```
+
+
+```{r}
+sex_table <- covar %>%
+  group_by(sex,education) %>%
+  summarise(count=n()) 
+
+sex_table
+
+```
+
+```{r}
+ggplot(covar, aes(x = age, fill=sex)) + 
+  geom_density(alpha = 0.5) +
+  facet_wrap(~education)+
+  labs(title="Age Distribution for Male and Female in Each Education",
+       x="Age",
+       y="Density")
+```
+From the plot, we can get the age of female is relatively larger than male in less than high school and high school equivalent, the age of male is relatively little larger than female in more than high school. 
+
+
+```{r}
+
+```
+
 
