@@ -12,6 +12,8 @@ library(ggridges)
 library(patchwork)
 library(dplyr)
 library(tidyr)
+library(readxl)
+library(readr)
 
 
 knitr::opts_chunk$set(
@@ -90,4 +92,38 @@ Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a
 ```
 From the hex plot, we can see the temperature concentrated on the center. From the ridge plot, we can see that almost station's snowfall between 0 and 35mm. But one station is on 50mm snowfall and one station is on 80mm snowfall. 
 
+## Problem 2
+
+Load, tidy, merge, and otherwise organize the data sets.
+```{r}
+accel = 
+  read_csv("data/nhanes_accel.csv",
+             col_names = TRUE,
+             na = c("","NA"))|>
+  janitor::clean_names()
+
+head(accel)
+```
+The accel dataset includes 150 rows and 1441 columns(one column for seqn and 1440 columns for each minutes data of a 24-hour day). 
+
+```{r}
+covar = 
+  read_csv("data/nhanes_covar.csv",
+             col_names = TRUE,
+             skip = 4,
+             na = c("","NA"))|>
+  janitor::clean_names()|>
+  filter(!is.na(bmi))|>
+  filter(!is.na(education))|>
+  filter(age > 21)|>
+  mutate(sex = as.factor(sex))|>
+  mutate(education = as.factor(education))
+ 
+head(covar)
+```
+The covar dataset includes 225 rows and 5 columns. Variables includes seqn, sex, age, bmi and education. The data with NA already removed, and the sex and education variable also change from numeric to factor. 
+
+```{r}
+accel_covar = left_join(covar,accel,by="seqn")
+```
 
