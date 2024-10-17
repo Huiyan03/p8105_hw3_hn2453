@@ -5,8 +5,89 @@ date: "2024-10-16"
 output: github_document
 ---
 
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(ggridges)
+library(patchwork)
+library(dplyr)
+library(tidyr)
+
+
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE,
+	fig.width = 8, 
+  fig.height = 6,
+  out.width = "90%"
+)
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+```
+
+
+## Problem 1, study from problem 1 solution.
 ```{r}
+library(p8105.datasets)
+data("ny_noaa")
+head(ny_noaa)
+```
+This dataset has `r nrow(ny_noaa)` rows and `r ncol(ny_noaa)` columns. Variables include id(Weather station ID), date(Date of observation), prcp(Precipitation (tenths of mm)), snow(Snowfall (mm)), snwd(Snow depth (mm)), tmax(Maximum temperature (tenths of degrees C)) and tmin(Minimum temperature (tenths of degrees C)). 
+
+
+```{r}
+ny_noaa %>% 
+  count(snow) %>%
+  arrange(desc(n))
+```
+From previous function, we can get the most counts of snow is 0, then NA, 25,13 and so on. 
+
+Create separate variables for year, month, and day. 
+```{r}
+ny_noaa = 
+  ny_noaa %>% 
+  separate(date, into = c("year", "month", "day"), convert = TRUE) %>% 
+  mutate(
+    tmax = as.numeric(tmax),
+    tmin = as.numeric(tmin))
 
 ```
+
+Make a two-panel plot showing the average max temperature in January and in July in each station across years
+```{r}
+ny_noaa %>% 
+  group_by(id, year, month) %>% 
+  filter(month %in% c(1, 7)) %>% 
+  summarize(mean_tmax = mean(tmax, na.rm = TRUE, color = id)) %>% 
+  ggplot(aes(x = year, y = mean_tmax, group = id)) + geom_point() + geom_path() +
+  facet_grid(~month) +
+  labs(title = "Mean monthly temperature for each station across years for January and July")
+```
+From the plot, we can see that the mean temperature in January is much lower than the mean temperature in July for all stations and years. And the trend for mostly stations in each year is similar. About 1982 years and 1987 years, there are two outliers.
+
+Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
+```{r}
+
+  ny_noaa %>% 
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_hex()
+
+
+  ny_noaa %>% 
+  filter(snow < 100, snow > 0) %>%
+  ggplot(aes(x = snow, y = as.factor(year))) + 
+  geom_density_ridges()
+
+
+```
+From the hex plot, we can see the temperature concentrated on the center. From the ridge plot, we can see that almost station's snowfall between 0 and 35mm. But one station is on 50mm snowfall and one station is on 80mm snowfall. 
 
 
